@@ -3,6 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <title>CityLocate</title>
+    <style>
+        body {
+            height: 100%;
+            width: 100%;
+        }
+
+        div#picture {
+            height: 500px;
+            width: 40%;
+            float: right;
+        }
+
+        div#map {
+            float: left;
+            width: 60%;
+            height: 50%;
+        }
+    </style>
     <link rel="stylesheet" type="text/css" href="mystyle.css">
     <script src="/socket.io/socket.io.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"/>
@@ -32,8 +50,11 @@
 </script>
 
 <h1>City locate</h1>
-<div id="map" style="width: 800px; height: 440px; "></div>
-<div id="picture" style="width: 800px; height: 440px; "></div>
+
+<div id="jeu">
+    <div id="map" style="width: 60%; height: 500px; "></div>
+    <div id="picture"></div>
+</div>
 
 <div id="lancement">
     <form>
@@ -66,6 +87,7 @@
 <script>
     let x = 0;
     let tab;
+    let time;
     var mymap = L.map('map').setView([47.638910, 6.850077], 13);
 
     L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -74,25 +96,26 @@
     }).addTo(mymap);
 
     function onMapClick(e) {
-        if (x+1 < tab.length) {
+        if (x + 1 < tab.length) {
             x++;
         }
         else {
+            document.getElementById('picture').style.display = "none";
+            document.getElementById('map').style.display = "none";
             socket.emit('End')
         }
+        let temp = time - Date.now();
         showImage();
-        let tmp = [];
-        console.log(e.latlng);
-        tmp.push(e.latlng.lat);
-        console.log(tmp);
         socket.emit('clicMap', {
             latitude: e.latlng.lat,
-            longitude: e.latlng.lng
+            longitude: e.latlng.lng,
+            temp: temp
         });
     }
 
-    function showImage(){
-        let linkPicture = "<img src=" + tab[x].lien + " alt=\"" + tab[x].titre + "\" width=\"250\" height=\"400\"/>";
+    function showImage() {
+        time = Date.now();
+        let linkPicture = "<img src=" + tab[x].lien + " alt=\"" + tab[x].titre + "\" width=\"100%\" height=\"100%\"/>";
         document.getElementById('picture').innerHTML = linkPicture;
     }
 
@@ -104,5 +127,6 @@
     mymap.on('click', onMapClick);
 
 </script>
+
 </body>
 </html>

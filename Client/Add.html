@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CIty locate ajout</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+</head>
+<body>
+
+<script>
+    let tabData = [];
+    let token = "";
+    $.get("http://iutbelfort.ltg-services.fr/getToken").done(function (result) {
+        token = result["token"];
+    });
+
+    let socket = io('http://localhost:8888');
+    window.onload = function () {
+        document.getElementById('add').style.display = "none";
+        document.getElementById('confirmer').style.display = "none";
+    };
+
+    function login() {
+        let pseudo;
+        let password;
+
+        if (document.getElementById('Pseudo').value.length >= 4) {
+            pseudo = document.getElementById('Pseudo').value
+        }
+        else {
+            document.getElementById('Pseudo').value = "";
+        }
+
+        if (document.getElementById('Password').value.length >= 4) {
+            password = document.getElementById('Password').value
+        }
+        else {
+            document.getElementById('Password').value = "";
+        }
+
+        if (pseudo !== "" && password !== "") {
+            let tabDataUser = [];
+            tabDataUser.push(pseudo);
+            tabDataUser.push(password);
+            tabDataUser.push(token);
+            socket.emit('Login', {
+                dataUser: tabDataUser
+            });
+        }
+    }
+
+    function addImage() {
+        let titre, lien, latitude, longitude;
+        if (document.getElementById('titre').value.length >= 4) {
+            titre = document.getElementById('titre').value
+        }
+        else {
+            document.getElementById('titre').value = "";
+        }
+        if (document.getElementById('lien').value.length >= 20) {
+            lien = document.getElementById('lien').value
+        }
+        else {
+            document.getElementById('lien').value = "";
+        }
+        if (document.getElementById('latitude').value.length >= 1) {
+            latitude = document.getElementById('latitude').value
+        }
+        else {
+            document.getElementById('latitude').value = "";
+        }
+        if (document.getElementById('longitude').value.length >= 1) {
+            longitude = document.getElementById('longitude').value
+        }
+        else {
+            document.getElementById('longitude').value = "";
+        }
+
+        if (titre !== "" && lien !== "" && latitude !== "" && longitude !== ""){
+            tabData = [];
+            tabData.push(titre);
+            tabData.push(lien);
+            tabData.push(latitude);
+            tabData.push(longitude);
+
+            document.getElementById('picture').innerHTML = "<img src=" + tabData[1] + " alt=\"" + tabData[0] + "\" width=\"200px\" height=\"200px\"/>";
+            document.getElementById('info').innerHTML = "titre : "+tabData[0]+"<br>Latitude : "+tabData[2]+"<br>Latitude : "+tabData[3];
+            document.getElementById('confirmer').style.display = "block";
+        }
+    }
+
+    function validImage(){
+        socket.emit('NewData', {
+            newPlace: tabData
+        });
+    }
+
+    socket.on('LoginVerif', (data) => {
+        if (data.token === token) {
+            document.getElementById('add').style.display = "block";
+            document.getElementById('login').style.display = "none";
+        }
+    });
+
+    socket.on('BadLogin', (data) => {
+        if (data.token === token) {
+            alert("Invalide");
+        }
+    });
+
+</script>
+
+<div id="login">
+    <div class="container login-container">
+        <div class="row">
+            <div style="position: center">
+                <h3>Connection :</h3>
+                <form>
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Pseudo" value="" id="Pseudo"/>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-control" placeholder="Your Password *" value=""
+                               id="Password"/>
+                    </div>
+                    <div class="form-group">
+                        <input type="button" class="btnSubmit" value="Login" onclick="login()"/>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="add" style="float: left; width: 60%; margin-left: 10%; margin-top: 10%">
+    <div class="container login-container">
+        <div class="row">
+            <div style="position: center">
+                <h3>Ajout :</h3>
+                <form>
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="titre" value="" id="titre"/>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Lien Image" value="" id="lien"/>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Latitude" value="" id="latitude"/>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Longitude" value="" id="longitude"/>
+                    </div>
+                    <div class="form-group">
+                        <input type="button" class="btnSubmit" value="Ajouter" onclick="addImage()"/>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="valider" style="float: right; width: 30%; margin-top: 10%">
+    <h3>Visualisation :</h3>
+    <div id="picture"></div>
+    <div id="info"></div>
+</div>
+<div id="confirmer" style="float: right; width: 30%">
+    <input type="button" value="Confirmer" onclick="validImage()">
+</div>
+
+</body>
+</html>
