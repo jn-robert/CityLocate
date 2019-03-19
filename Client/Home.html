@@ -37,14 +37,26 @@
     window.onload = function () {
         document.getElementById('map').style.display = "none";
         document.getElementById('picture').style.display = "none";
+        document.getElementById('end').style.display = "none";
+        document.getElementById('score').style.display = "none";
     };
 
     function start() {
-        document.getElementById('map').style.display = "block";
-        document.getElementById('picture').style.display = "block";
-        document.getElementById('lancement').style.display = "none";
+        if (document.getElementById('pseudo').value !== "") {
+            document.getElementById('map').style.display = "block";
+            document.getElementById('picture').style.display = "block";
+            document.getElementById('lancement').style.display = "none";
 
-        socket.emit('Start')
+            socket.emit('Init', {
+                pseudo: document.getElementById('pseudo').value,
+                difficulter: checkBox()
+            });
+
+            socket.emit('Start');
+        }
+        else {
+            alert('Pseudo vide');
+        }
     }
 
 </script>
@@ -56,6 +68,11 @@
     <div id="picture"></div>
 </div>
 
+<div id="end">
+    <input type="button" onclick="afficheScore()" value="Afficher les scores">
+</div>
+<div id="score"></div>
+
 <div id="lancement">
     <form>
         <div class="form-group">
@@ -63,19 +80,19 @@
             <input type="text" class="form-control" id="pseudo" placeholder="Entrer un pseudonyme">
         </div>
         <div class="form-check">
-            <input class="form-check-input" type="radio" name="exampleRadios" value="Facile">
+            <input class="form-check-input" id="ch1" type="radio" name="difficulter" value="1">
             <label class="form-check-label">
                 Facile
             </label>
         </div>
         <div class="form-check">
-            <input class="form-check-input" type="radio" name="exampleRadios" value="Normal" checked>
+            <input class="form-check-input" id="ch2" type="radio" name="difficulter" value="0.75" checked>
             <label class="form-check-label">
                 Normal
             </label>
         </div>
         <div class="form-check">
-            <input class="form-check-input" type="radio" name="exampleRadios" value="Difficile">
+            <input class="form-check-input" id="ch3" type="radio" name="difficulter" value="0.5">
             <label class="form-check-label">
                 Difficile
             </label>
@@ -91,7 +108,7 @@
     var mymap = L.map('map').setView([47.638910, 6.850077], 13);
 
     L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        attribution: '&copy;<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         subdomains: ['a', 'b', 'c']
     }).addTo(mymap);
 
@@ -102,7 +119,7 @@
         else {
             document.getElementById('picture').style.display = "none";
             document.getElementById('map').style.display = "none";
-            socket.emit('End')
+            document.getElementById('end').style.display = "block";
         }
         let temp = time - Date.now();
         showImage();
@@ -113,10 +130,41 @@
         });
     }
 
+    function afficheScore() {
+        socket.emit('End');
+        socket.on('ScoreJoueur', (data) => {
+            let txt = 'Votre score est de ' + data.score;
+            alert(txt);
+        });
+        socket.on('Score', (data) => {
+            let txt = "";
+            for (let x = 0; x < data.tabScore.length; x++) {
+                txt += "Pseudo : "+data.tabScore[x].pseudo +" Score : "+data.tabScore[x].nbScore+"<br>";
+            }
+            txt += "<a href='/'>Rejouer</a>";
+            document.getElementById("score").innerHTML = txt;
+            document.getElementById('score').style.display = "block";
+            document.getElementById('end').style.display = "none";
+        });
+    }
+
     function showImage() {
         time = Date.now();
-        let linkPicture = "<img src=" + tab[x].lien + " alt=\"" + tab[x].titre + "\" width=\"100%\" height=\"100%\"/>";
-        document.getElementById('picture').innerHTML = linkPicture;
+        document.getElementById('picture').innerHTML = "<img src=" + tab[x].lien + " alt=\"" + tab[x].titre + "\" width=\"100%\" height=\"100%\"/>";
+    }
+
+    function checkBox() {
+        let valeur;
+        if (document.getElementById('ch1').checked) {
+            valeur = document.getElementById('ch1').value;
+        }
+        else if (document.getElementById('ch2').checked) {
+            valeur = document.getElementById('ch2').value;
+        }
+        else {
+            valeur = document.getElementById('ch3').value;
+        }
+        return valeur;
     }
 
     socket.on('Partie', (data) => {

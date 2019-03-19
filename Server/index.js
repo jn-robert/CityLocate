@@ -31,13 +31,23 @@ app.get('/add', (req, res) => {
 let listener = socket.listen(server, {log: false});
 
 let tab;
+let pseudo, difficulter;
 let coordServ = [];
 let coordRecu = [];
 let score = 0;
-let D = 0.001;
+let D = 1;
+const prec = 1000;
 let temp = 0;
 
 function start(socket) {
+
+    socket.on('Init', (data) =>{
+        pseudo = data.pseudo;
+        difficulter = data.difficulter;
+
+        D = 1;
+        D = D*(difficulter)/prec;
+    });
 
     socket.on('Start', function () {
         con.query('SELECT * FROM location', (err, rows) => {
@@ -72,7 +82,24 @@ function start(socket) {
     });
 
     socket.on('End', function () {
+        socket.emit('ScoreJoueur', {
+            score: score
+        });
 
+        let tabScore = [];
+        let sql = "INSERT INTO `score` (`id`, `nbScore`, `pseudo`) VALUES (NULL,";
+        let cmd = sql + "'"+score+"','"+pseudo+"');";
+        con.query(cmd, (err, rows) =>{
+            if (err) throw err;
+        });
+        con.query('SELECT * FROM score ORDER BY nbScore DESC', (err, rows) => {
+            if (err) throw err;
+            tabScore = rows;
+
+            socket.emit('Score', {
+                tabScore: tabScore
+            });
+        });
     });
 
     socket.on('Login', (data) => {
@@ -133,7 +160,6 @@ function calculScore() {
             score += coef;
         }
     }
-    console.log(score);
 }
 
 function shuffle(array) {
