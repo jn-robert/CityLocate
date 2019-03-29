@@ -21,6 +21,7 @@ CREATE TABLE score(
  PRIMARY KEY(id)
 );
 
+
 INSERT INTO `location` (`id`, `titre`, `lien`, `latitude`, `longitude`) VALUES (NULL, 'Iut Belfort', 'http://actu.univ-fcomte.fr/sites/default/files/batiment-iut-90-0111.jpg', '47.6437703', '6.8384994');
 INSERT INTO `location` (`id`, `titre`, `lien`, `latitude`, `longitude`) VALUES (NULL, 'La Poudrière', 'https://www.jds.fr/medias/image/la-poudriere-rockhatry-belfort-7378-600-600-F.jpg', '47.6373541', '6.863235');
 INSERT INTO `location` (`id`, `titre`, `lien`, `latitude`, `longitude`) VALUES (NULL, 'Gare de Belfort', 'http://christophe.lachenal.free.fr/Images/belfort_gare01.jpg', '47.6482631', '6.789449');
